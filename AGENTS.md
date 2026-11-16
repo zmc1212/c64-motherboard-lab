@@ -1,0 +1,18 @@
+# COMMODORE 64（ASSY 250425，PAL）装配模拟实验室
+
+蓝图风 C64 主板装配：8× 4164 DRAM、VIC-II 6569、SID 6581、PLA、6510、2× CIA 6526、
+BASIC/KERNAL/CHAR ROM、RF 盒与 CRT 监视器。29 个零件分 8 阶段装配，
+BOOT 阶段出 BASIC V2 READY，SID 阶段三声部 JAM。
+
+## 启动方式
+- HTTP：`python3 tools/serve.py 8080`（禁缓存）→ http://127.0.0.1:8080
+- 双击 index.html：经典 `<script>`、无 fetch、贴图程序化生成，file:// 行为一致。
+
+## 交互
+拖动旋转 / 滚轮缩放 / 点击零件 / 空格暂停 / R 重播 / 1-8 跳阶段
+（pcb → dram → custom → cpu → rom → conn → boot → sid）；
+BOOT 之后按 A S D F G H J K 用 SID 弹音符（Pulse/Saw/Tri 三声部）。
+
+## 验收
+按 7（boot）：CRT 蓝屏、内存映射填充、READY 标签；按 8（sid）并按键弹音，
+SID 面板 V1/V2/V3 有输出。控制台无错误。
