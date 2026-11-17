@@ -91,6 +91,8 @@
     dom = { mode: $("st-mode"), ram: $("st-ram"), parts: $("st-parts"), pill: $("phase-text"), dot: $("phase-dot") };
   }
 
+  var PHASE_SFX = { dram: "insert", custom: "insert", cpu: "insert", rom: "insert", conn: "insert", boot: "power", sid: "chime" };
+
   function enterPhase(i) {
     idx = i;
     pt = 0;
@@ -108,6 +110,7 @@
       state.crtMode = "sid";
     }
     var pins = PINNED[ph.id];
+    if (C64B.Audio && PHASE_SFX[ph.id]) C64B.Audio.play(PHASE_SFX[ph.id]);
     C64B.Labels.setPinned(pins ? pins() : []);
   }
 
@@ -255,6 +258,7 @@
     /* sid 阶段字母键触发音符(轮流分配到三个声道) */
     keyNote: function (freq) {
       if (!(phases[idx] && phases[idx].id === "sid")) return;
+      if (C64B.Audio) C64B.Audio.play("note", freq, 0.4, "square");
       var v = state.press % 3;
       state.press++;
       state.voices[v].f = freq;

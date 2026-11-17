@@ -451,6 +451,7 @@
       if (t >= 1 && !p.landed) {
         p.landed = true;
         seatedCount++;
+        if (C64B.Audio) C64B.Audio.play("land");
         p.lineUntil = now + 0.5;
       }
       if (p.line) {
