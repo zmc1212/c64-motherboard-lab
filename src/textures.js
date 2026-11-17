@@ -1,30 +1,36 @@
 /* 程序化 Canvas 贴图:纸面背景 / 纸桌 / 图纸垫 / C64 蓝色 PCB(丝印+走线) / 芯片顶标 */
 (function (C64B) {
 
-  /* 主板元件布局表(板面坐标:米,x 右 / z 前),PCB 贴图与 3D 零件共用 */
+  /* 主板元件布局表(板面坐标:米,x 右 / z 前),PCB 贴图与 3D 零件共用。
+     位号按真实 ASSY 250425 丝印:U7 CPU / U19 VIC-II / U18 SID / U17 PLA /
+     U3 BASIC / U4 KERNAL / U5 CHAR / U6 2114 色彩 SRAM / DRAM U9-U12 + U21-U24 */
   C64B.PCB_LAYOUT = {
     dram: [
       [-1.95, -0.86], [-1.55, -0.86], [-1.95, -0.44], [-1.55, -0.44],
       [-1.95, -0.02], [-1.55, -0.02], [-1.95, 0.4], [-1.55, 0.4]
     ],
     chips: [
-      { x: 0.05, z: 0.02, w: 0.16, l: 0.52, ref: "U6", name: "6510" },
-      { x: 0.72, z: -0.72, w: 0.16, l: 0.52, ref: "U18", name: "6569" },
-      { x: -1.15, z: 0.85, w: 0.16, l: 0.38, ref: "U5", name: "6581" },
-      { x: 0.72, z: 0.02, w: 0.16, l: 0.38, ref: "U7", name: "906114" },
-      { x: -0.12, z: 0.92, w: 0.16, l: 0.52, ref: "U1", name: "6526" },
-      { x: 0.72, z: 0.92, w: 0.16, l: 0.52, ref: "U2", name: "6526" },
-      { x: 1.52, z: -0.62, w: 0.17, l: 0.34, ref: "U19", name: "BASIC" },
-      { x: 1.52, z: -0.08, w: 0.17, l: 0.34, ref: "U20", name: "KERNAL" },
-      { x: 1.52, z: 0.42, w: 0.17, l: 0.34, ref: "U21", name: "CHAR" }
+      { x: 0.05, z: 0.02, w: 0.16, l: 0.52, ref: "U7", name: "6510" },
+      { x: 0.72, z: -0.72, w: 0.16, l: 0.52, ref: "U19", name: "6569" },
+      { x: -1.15, z: 0.85, w: 0.16, l: 0.38, ref: "U18", name: "6581" },
+      { x: 0.72, z: 0.02, w: 0.16, l: 0.38, ref: "U17", name: "906114" },
+      { x: -0.12, z: 0.92, w: 0.16, l: 0.52, ref: "U15", name: "6526" },
+      { x: 0.72, z: 0.92, w: 0.16, l: 0.52, ref: "U16", name: "6526" },
+      { x: 1.52, z: -0.62, w: 0.17, l: 0.38, ref: "U3", name: "BASIC" },
+      { x: 1.52, z: -0.08, w: 0.17, l: 0.38, ref: "U4", name: "KERNAL" },
+      { x: 1.52, z: 0.42, w: 0.17, l: 0.34, ref: "U5", name: "CHAR" },
+      { x: 0.42, z: -0.52, w: 0.11, l: 0.22, ref: "U6", name: "2114" },
+      { x: -0.5, z: -0.45, w: 0.14, l: 0.1, ref: "Y1", name: "17.734476" },
+      { x: -0.28, z: -0.32, w: 0.1, l: 0.2, ref: "U31", name: "8701" }
     ],
     edges: [
       { x: 2.2, z: -0.1, w: 0.14, l: 1.2, label: "EXPANSION" },
       { x: -0.35, z: 1.46, w: 0.5, l: 0.13, label: "USER PORT" },
-      { x: -1.05, z: 1.46, w: 0.44, l: 0.13, label: "CASSETTE" }
+      { x: -1.05, z: 1.46, w: 0.44, l: 0.13, label: "CASSETTE" },
+      { x: -1.7, z: 1.46, w: 0.6, l: 0.13, label: "KEYBOARD" }
     ],
     dins: [
-      { x: -1.95, z: 1.12, r: 0.06 },
+      { x: -1.95, z: 1.12, r: 0.055 },
       { x: 1.45, z: 1.35, r: 0.065 },
       { x: 1.3, z: -1.18, r: 0.075 }
     ],
@@ -198,30 +204,121 @@
         ctx.fillStyle = bg;
         ctx.fillRect(bx - br, by - br, br * 2, br * 2);
       }
-      // 曼哈顿走线
-      ctx.strokeStyle = "rgba(24,28,92,0.5)";
-      ctx.lineWidth = 2;
-      for (var t = 0; t < 42; t++) {
-        ctx.beginPath();
-        var x = rnd() * w, y = rnd() * h;
-        ctx.moveTo(x, y);
-        for (var s = 0; s < 4; s++) {
-          if (rnd() > 0.5) x += (rnd() - 0.5) * 260; else y += (rnd() - 0.5) * 180;
-          ctx.lineTo(x, y);
-        }
-        ctx.stroke();
+      /* ---- 铜箔走线:确定性布线生成器 ----
+         mulberry32 种子随机 + 以真实封装(U7/U19/U18/U17/U3-U5/U6/U31、DRAM 两排、
+         CIAs、接插件)为锚点的总线束:VIC↔DRAM 宽数据总线、CPU↔PLA↔ROM 地址总线、
+         时钟链 Y1→8701→CPU、各 IO 口到 CIAs。45°+ 正交段,弯折处铜环过孔,
+         端点金焊盘;铜色比蓝色阻焊层亮 */
+      function mulberry32(a) {
+        return function () {
+          a |= 0; a = a + 0x6D2B79F5 | 0;
+          var t2 = Math.imul(a ^ a >>> 15, 1 | a);
+          t2 = t2 + Math.imul(t2 ^ t2 >>> 7, 61 | t2) ^ t2;
+          return ((t2 ^ t2 >>> 14) >>> 0) / 4294967296;
+        };
       }
-      // 电源区加粗走线
-      ctx.lineWidth = 6;
-      ctx.strokeStyle = "rgba(24,28,92,0.4)";
-      ctx.beginPath();
-      ctx.moveTo(X(-2.1), Z(1.1)); ctx.lineTo(X(-1.2), Z(1.1)); ctx.lineTo(X(-1.2), Z(0.2));
-      ctx.stroke();
-      // 过孔
-      ctx.fillStyle = "rgba(190,196,255,0.26)";
-      for (var v = 0; v < 130; v++) {
+      var crand = mulberry32(0x250425);
+      function cr() { return crand(); }
+
+      var COPPER = "rgba(150,160,236,0.5)";      /* 比蓝色阻焊亮的铜色 */
+      var RING = "rgba(190,198,246,0.8)";        /* 过孔铜环 */
+      var DRILL = "rgba(24,28,96,0.9)";          /* 过孔钻孔 */
+      var PAD = "rgba(206,176,92,0.8)";          /* 金焊盘 */
+
+      /* 45° 转正交的狗腿走线(板面米坐标),弯折画铜环过孔,端点画金焊盘 */
+      function route(p0, p1, lw, alpha, noPad) {
+        var dx = p1[0] - p0[0], dz = p1[1] - p0[1];
+        var mid = Math.min(Math.abs(dx), Math.abs(dz));
+        var pts = [p0, [p0[0] + Math.sign(dx) * mid, p0[1] + Math.sign(dz) * mid], p1];
+        ctx.strokeStyle = "rgba(150,160,236," + alpha + ")";
+        ctx.lineWidth = lw;
+        ctx.lineJoin = "miter";
         ctx.beginPath();
-        ctx.arc(rnd() * w, rnd() * h, 1.8, 0, Math.PI * 2);
+        ctx.moveTo(X(p0[0]), Z(p0[1]));
+        for (var i = 1; i < pts.length; i++) ctx.lineTo(X(pts[i][0]), Z(pts[i][1]));
+        ctx.stroke();
+        for (var vi = 1; vi < pts.length - 1; vi++) {
+          var vx = X(pts[vi][0]), vz = Z(pts[vi][1]);
+          ctx.fillStyle = RING;
+          ctx.beginPath(); ctx.arc(vx, vz, 3.2, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = DRILL;
+          ctx.beginPath(); ctx.arc(vx, vz, 1.4, 0, Math.PI * 2); ctx.fill();
+        }
+        if (!noPad) {
+          [[p0, 1], [p1, 1]].forEach(function (pp) {
+            ctx.fillStyle = PAD;
+            ctx.beginPath(); ctx.arc(X(pp[0][0]), Z(pp[0][1]), 2.2, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = DRILL;
+            ctx.beginPath(); ctx.arc(X(pp[0][0]), Z(pp[0][1]), 0.9, 0, Math.PI * 2); ctx.fill();
+          });
+        }
+      }
+
+      /* 总线束:s/e 为 [x0,z0,x1,z1] 线段(板面米),两端线性取样
+         (两端同向递增 → 狗腿段平行不交叉) */
+      function bus(s, e, n, lw, alpha, noPad) {
+        for (var i = 0; i < n; i++) {
+          var k = n > 1 ? i / (n - 1) : 0.5;
+          route(
+            [s[0] + (s[2] - s[0]) * k, s[1] + (s[3] - s[1]) * k],
+            [e[0] + (e[2] - e[0]) * k, e[1] + (e[3] - e[1]) * k],
+            lw, alpha, noPad
+          );
+        }
+      }
+      function seg(x0, z0, x1, z1) { return [x0, z0, x1, z1]; }
+
+      /* VIC-II ↔ DRAM 多路复用总线(宽,端点落在两排 4164 引脚上) */
+      (function () {
+        var ez = [-0.93, -0.79, -0.51, -0.37, -0.09, 0.05, 0.33, 0.47];
+        for (var i = 0; i < ez.length; i++) {
+          route([0.64, -0.93 + i * 0.0629], [-1.49, ez[i]], 2.5, 0.5);
+        }
+      })();
+      bus(seg(-1.89, -0.95, -1.89, 0.49), seg(-1.61, -0.95, -1.61, 0.49), 8, 2, 0.45);
+      /* CPU ↔ PLA ↔ ROM 地址总线 */
+      bus(seg(0.13, -0.18, 0.13, 0.22), seg(0.64, -0.18, 0.64, 0.22), 8, 2.5, 0.5);
+      bus(seg(0.80, -0.16, 0.80, -0.08), seg(1.435, -0.70, 1.435, -0.58), 3, 2, 0.45);
+      bus(seg(0.80, -0.04, 0.80, 0.04), seg(1.435, -0.14, 1.435, -0.02), 3, 2, 0.45);
+      bus(seg(0.80, 0.12, 0.80, 0.20), seg(1.435, 0.36, 1.435, 0.48), 3, 2, 0.45);
+      /* 扩展口 → ROM 东侧 */
+      bus(seg(2.13, -0.64, 2.13, -0.32), seg(1.605, -0.70, 1.605, -0.38), 4, 2, 0.42);
+      bus(seg(2.13, -0.26, 2.13, -0.20), seg(1.605, -0.14, 1.605, -0.08), 2, 2, 0.42);
+      /* CPU ↔ VIC-II */
+      bus(seg(0.0, -0.24, 0.10, -0.24), seg(0.64, -0.92, 0.64, -0.66), 4, 2, 0.45);
+      /* 色彩 SRAM U6 ↔ VIC-II */
+      bus(seg(0.64, -0.60, 0.64, -0.48), seg(0.475, -0.56, 0.475, -0.44), 4, 2, 0.45);
+      /* 时钟链:Y1 晶振 → 8701 → CPU(÷18) */
+      bus(seg(-0.43, -0.48, -0.43, -0.44), seg(-0.33, -0.42, -0.33, -0.38), 2, 2, 0.5);
+      bus(seg(-0.23, -0.40, -0.23, -0.28), seg(-0.03, -0.24, 0.09, -0.24), 2, 2, 0.5);
+      /* CPU ↔ CIA1 / CIA1 ↔ CIA2 / SID ↔ CIA1 */
+      bus(seg(-0.03, 0.28, 0.09, 0.28), seg(-0.20, 0.66, -0.08, 0.66), 4, 2, 0.45);
+      bus(seg(-0.04, 0.76, -0.04, 1.08), seg(0.64, 0.76, 0.64, 1.08), 4, 2, 0.45);
+      bus(seg(-1.07, 0.72, -1.07, 0.96), seg(-0.20, 0.72, -0.20, 0.96), 3, 2, 0.45);
+      /* CIA2 → IEC 串行总线 */
+      bus(seg(0.80, 0.80, 0.80, 1.04), seg(1.39, 1.25, 1.39, 1.31), 3, 2, 0.42);
+      /* 键盘 / 磁带口 → CIA1,用户口 → CIA2,摇杆 DB9 → CIAs */
+      bus(seg(-1.90, 1.395, -1.50, 1.395), seg(-0.20, 1.18, -0.12, 1.18), 3, 2, 0.42);
+      bus(seg(-1.15, 1.395, -0.95, 1.395), seg(-0.16, 1.18, -0.08, 1.18), 3, 2, 0.42);
+      bus(seg(-0.55, 1.395, -0.19, 1.395), seg(0.64, 1.18, 0.76, 1.18), 4, 2, 0.42);
+      bus(seg(0.14, 1.275, 0.26, 1.275), seg(-0.10, 1.18, -0.02, 1.18), 3, 2, 0.42);
+      bus(seg(0.79, 1.275, 0.91, 1.275), seg(0.68, 1.18, 0.80, 1.18), 3, 2, 0.42);
+      /* VIC-II → 视频 DIN 与 RF 盒(视频/音频),RF → DIN */
+      bus(seg(0.80, -0.69, 0.80, -0.57), seg(1.24, -1.26, 1.36, -1.26), 3, 2, 0.45);
+      bus(seg(0.80, -0.86, 0.80, -0.74), seg(1.67, -1.12, 1.67, -1.00), 4, 2, 0.45);
+      bus(seg(1.67, -1.12, 1.67, -1.04), seg(1.24, -1.26, 1.36, -1.26), 2, 2, 0.4);
+      /* 电源干线:7-PIN DIN → 7805 → 电容 → 主干 → CPU 区 */
+      route([-1.86, 1.09], [-1.62, 1.09], 5, 0.42, true);
+      route([-1.86, 1.15], [-1.62, 1.15], 5, 0.42, true);
+      route([-1.62, 1.02], [-1.84, 0.96], 4, 0.42, true);
+      route([-1.72, 0.64], [-0.42, 0.58], 5, 0.42, true);
+      route([-0.42, 0.58], [-0.05, 0.36], 4, 0.42, true);
+      /* 板面随机斑驳点缀用的小号种子随机(与走线无关) */
+      for (var dot = 0; dot < 24; dot++) {
+        var dvx = cr(), dvy = cr();
+        ctx.fillStyle = "rgba(190,198,246,0.14)";
+        ctx.beginPath();
+        ctx.arc(dvx * w, dvy * h, 1.6, 0, Math.PI * 2);
         ctx.fill();
       }
       // 金手指条
@@ -256,12 +353,12 @@
       });
       // 芯片丝印
       L.chips.forEach(function (c) { dipSilk(ctx, X(c.x), Z(c.z), c.w * sx, c.l * sz, c.ref, c.name); });
-      L.dram.forEach(function (d, i) { dipSilk(ctx, X(d[0]), Z(d[1]), 0.12 * sx, 0.26 * sz, "U" + (9 + i), "4164"); });
+      L.dram.forEach(function (d, i) { dipSilk(ctx, X(d[0]), Z(d[1]), 0.12 * sx, 0.26 * sz, "U" + (i < 4 ? 9 + i : 17 + i), "4164"); });
       // 接口文字丝印
       ctx.fillStyle = "rgba(240,242,255,0.8)";
       ctx.font = "bold 14px monospace";
       ctx.textAlign = "left";
-      ctx.fillText("PWR 5V DC", X(-1.95) - 42, Z(1.12) + 30);
+      ctx.fillText("PWR 9V AC + 5V DC", X(-1.95) - 42, Z(1.12) + 30);
       ctx.fillText("JOY 1", X(0.2) - 18, Z(1.35) + 34);
       ctx.fillText("JOY 2", X(0.85) - 18, Z(1.35) + 34);
       ctx.fillText("IEC", X(1.45) - 12, Z(1.35) + 28);

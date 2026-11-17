@@ -33,13 +33,13 @@
       return [{ id: "pin-board", obj: C64B.Parts.group("pcb"), text: "COMMODORE 64 · ASSY 250425", sub: "9V AC + 5V DC IN" }];
     },
     dram: function () {
-      return [{ id: "pin-dram", obj: C64B.Parts.group("dram0"), text: "4164 ×8 · TWO RANKS", sub: "64K×1 · U9-U16", tone: "white" }];
+      return [{ id: "pin-dram", obj: C64B.Parts.group("dram0"), text: "4164 ×8 · TWO RANKS", sub: "64K×1 · U9-U12 + U21-U24", tone: "white" }];
     },
     custom: function () {
       return [{ id: "pin-sid", obj: C64B.Parts.group("sid"), text: "MOS 6581 SID", sub: "the sound chip" }];
     },
     cpu: function () {
-      return [{ id: "pin-cpu", obj: C64B.Parts.group("cpu"), text: "MOS 6510", sub: "1.023 MHZ · DIP-40", tone: "white" }];
+      return [{ id: "pin-cpu", obj: C64B.Parts.group("cpu"), text: "MOS 6510", sub: "0.985 MHZ · ÷18 VIA 8701", tone: "white" }];
     },
     rom: function () {
       return [{ id: "pin-rom", obj: C64B.Parts.group("romBasic"), text: "BASIC 8K · $A000", sub: "KERNAL $E000 · CHAR $D000", tone: "white" }];
@@ -156,7 +156,7 @@
         state.cursor = Math.sin(state.time * 7) > -0.25;
         state.freeB = state.typed >= 75 ? 38911 : 0;
       }
-      state.irq += dt * 60;
+      state.irq += dt * 50;  /* PAL jiffy:50 /S(CIA1 TOD 同为 50 Hz) */
       state.ta = 1 - ((state.time * 2.2) % 1);
       state.tb = 1 - ((state.time * 0.7) % 1);
       state.bus = 0.28 + 0.62 * Math.abs(Math.sin(state.time * 11.3)) * (0.7 + 0.3 * Math.sin(state.time * 3.1));

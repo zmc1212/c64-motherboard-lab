@@ -1,4 +1,4 @@
-/* 零件建模 + 飞行装配控制器(29 件)+ CRT 动态屏幕(开机打字机 / SID 可视化) */
+/* 零件建模 + 飞行装配控制器(32 件)+ CRT 动态屏幕(开机打字机 / SID 可视化) */
 (function (C64B) {
   var list = [];
   var root = null;
@@ -156,10 +156,10 @@
       setTag(hh, "MOUNTING HOLE", "M3 · CHASSIS");
       g.add(hh);
     });
-    // 晶振 1.023 MHz
-    var xt = mesh(new THREE.CylinderGeometry(0.033, 0.033, 0.14, 12), M.silver, -0.5, 0.034, -0.55);
+    // Y1 晶振 17.734476 MHz(PAL 主时钟,经 U31 8701 ÷18 → 0.985 MHz 给 CPU)
+    var xt = mesh(new THREE.CylinderGeometry(0.033, 0.033, 0.14, 12), M.silver, -0.5, 0.034, -0.45);
     xt.rotation.z = Math.PI / 2;
-    setTag(xt, "XTAL · 1.023 MHZ", "MASTER CLOCK");
+    setTag(xt, "XTAL · 17.734476 MHZ", "Y1 · MASTER CLOCK · PAL");
     g.add(xt);
     // 7805 三端稳压
     var reg = new THREE.Group();
@@ -168,10 +168,10 @@
     reg.add(mesh(new THREE.BoxGeometry(0.11, 0.07, 0.02), M.alu, 0, 0.09, -0.035));
     setTag(reg, "VR · 7805", "9V AC → 5V DC");
     g.add(reg);
-    // 电解电容 ×4
+    // 电解电容 ×4(470µF ×2 + 100µF ×2,板级取值)
     [[-2.0, 0.9], [-1.8, 0.66], [-1.6, 0.92], [-1.8, 1.16]].forEach(function (cp, i) {
       var c = mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.095, 12), i % 2 ? M.capA : M.capB, cp[0], 0.048, cp[1]);
-      setTag(c, "ELECTROLYTIC CAP", "2200 µF · POWER RAIL");
+      setTag(c, "ELECTROLYTIC CAP", i < 2 ? "470 µF · 9V AC RAIL" : "100 µF · 5V RAIL");
       g.add(c);
     });
     // 电阻排 ×3
@@ -196,10 +196,10 @@
   }
 
   function buildShield() {
-    // SID 屏蔽罩:两半银色薄壳,落位时合拢
+    // VIC-II 屏蔽罩(兼 RF 屏蔽):两半银色薄壳,落位时合拢
     var g = new THREE.Group();
-    var l = mesh(new THREE.BoxGeometry(0.205, 0.125, 0.42), M.alu, -0.105, 0.142, 0);
-    var r = mesh(new THREE.BoxGeometry(0.205, 0.125, 0.42), M.alu, 0.105, 0.142, 0);
+    var l = mesh(new THREE.BoxGeometry(0.205, 0.125, 0.56), M.alu, -0.105, 0.142, 0);
+    var r = mesh(new THREE.BoxGeometry(0.205, 0.125, 0.56), M.alu, 0.105, 0.142, 0);
     g.add(l); g.add(r);
     g.userData.halves = [l, r];
     return g;
@@ -269,7 +269,7 @@
   }
 
   function buildCord() {
-    // 电源线:2-pin DIN 插头 + 黑色线缆拖尾
+    // 电源线:7-pin DIN 插头 + 黑色线缆拖尾
     var g = new THREE.Group();
     g.add(mesh(new THREE.BoxGeometry(0.1, 0.09, 0.16), M.plastic, 0, 0.045, 0));
     g.add(mesh(new THREE.BoxGeometry(0.07, 0.03, 0.05), M.dark, 0, 0.02, -0.09));
@@ -305,34 +305,37 @@
 
     def("pcb", "COMMODORE 64 MAINBOARD", "ASSY 250425 · 9V AC + 5V DC", [0, 0], 0, 0.3, buildPcb, 0.15, { dur: 1.6, hold: 2600, y: MAT_TOP });
 
-    // 8× 4164:两列各 4 颗,弹夹节奏落板
+    // 8× 4164:两列各 4 颗,弹夹节奏落板(位号按 250425:U9-U12 / U21-U24)
     var dxs = [-1.95, -1.55], dzs = [-0.86, -0.44, -0.02, 0.4];
     for (var di = 0; di < 8; di++) {
       var col = di % 2, row = Math.floor(di / 2);
-      def("dram" + di, "MOS 4164 DRAM", "64K×1 · U" + (9 + di), [dxs[col], dzs[row]], 0, 0.12, buildDram, 4.3 + di * 0.42, { dur: 0.95, hold: 1100 });
+      def("dram" + di, "MOS 4164 DRAM", "64K×1 · U" + (di < 4 ? 9 + di : 17 + di), [dxs[col], dzs[row]], 0, 0.12, buildDram, 4.3 + di * 0.42, { dur: 0.95, hold: 1100 });
     }
 
-    def("vic", "MOS 6569 VIC-II", "VIDEO · 320×200", [0.72, -0.72], 0, 0.16, function () { return dip(0.52, 0.16, 0.075, 40, chipTex("MOS 6569", "VIC-II · PAL"), "vic"); }, 10.3, {});
-    def("sid", "MOS 6581 SID", "the sound chip · 3 VOICE", [-1.15, 0.85], 0, 0.17, function () { return dip(0.38, 0.16, 0.07, 28, chipTex("MOS 6581", "SID"), "sid"); }, 11.6, {});
-    def("shield", "RF SHIELD CAN", "TWO HALVES · SNAP OVER SID", [-1.15, 0.85], 0, 0.28, buildShield, 13.0, { dur: 1.2 });
-    def("pla", "MOS 906114 PLA", "COMBINATORIAL LOGIC", [0.72, 0.02], 0, 0.15, function () { return dip(0.38, 0.16, 0.07, 28, chipTex("MOS 906114", "PLA"), "pla"); }, 14.4, {});
+    def("vic", "MOS 6569 VIC-II", "VIDEO · 320×200 · U19", [0.72, -0.72], 0, 0.16, function () { return dip(0.52, 0.16, 0.075, 40, chipTex("MOS 6569", "VIC-II · PAL"), "vic"); }, 10.3, {});
+    def("u6sram", "2114 COLOR SRAM", "1K×4 · U6 · VIC PALETTE", [0.42, -0.52], 0, 0.12, function () { return dip(0.22, 0.11, 0.05, 18, chipTex("2114", "COLOR RAM"), "u6"); }, 11.9, { dur: 1.0 });
+    def("sid", "MOS 6581 SID", "the sound chip · 3 VOICE · U18", [-1.15, 0.85], 0, 0.17, function () { return dip(0.38, 0.16, 0.07, 28, chipTex("MOS 6581", "SID"), "sid"); }, 11.6, {});
+    def("shield", "VIC-II SHIELD", "TWO HALVES · SNAP OVER VIC-II", [0.72, -0.72], 0, 0.28, buildShield, 13.0, { dur: 1.2 });
+    def("pla", "MOS 906114 PLA", "COMBINATORIAL LOGIC · U17", [0.72, 0.02], 0, 0.15, function () { return dip(0.38, 0.16, 0.07, 28, chipTex("MOS 906114", "PLA"), "pla"); }, 14.4, {});
 
-    def("cpu", "MOS 6510 CPU", "1.023 MHZ · DIP-40", [0.05, 0.02], 0, 0.17, function () { return dip(0.52, 0.16, 0.075, 40, chipTex("MOS 6510", "1.023 MHZ"), "cpu"); }, 17.3, {});
-    def("cia1", "MOS 6526 CIA", "I/O · TIMERS · JOY1", [-0.12, 0.92], 0, 0.16, function () { return dip(0.52, 0.16, 0.075, 40, chipTex("MOS 6526", "CIA"), "cia"); }, 18.6, {});
-    def("cia2", "MOS 6526 CIA", "I/O · TIMERS · IEC", [0.72, 0.92], 0, 0.16, function () { return dip(0.52, 0.16, 0.075, 40, chipTex("MOS 6526", "CIA"), "cia"); }, 19.7, {});
+    def("clock8701", "MOS 8701", "CLOCK GEN · DIP-16 · ÷18", [-0.28, -0.32], 0, 0.12, function () { return dip(0.2, 0.1, 0.055, 16, chipTex("8701", "CLOCK GEN"), "clk"); }, 16.7, { dur: 1.0 });
+    def("cpu", "MOS 6510 CPU", "0.985 MHZ · DIP-40 · U7", [0.05, 0.02], 0, 0.17, function () { return dip(0.52, 0.16, 0.075, 40, chipTex("MOS 6510", "0.985 MHZ"), "cpu"); }, 17.3, {});
+    def("cia1", "MOS 6526 CIA1", "JOY1 + JOY2 + KEYBOARD · U15", [-0.12, 0.92], 0, 0.16, function () { return dip(0.52, 0.16, 0.075, 40, chipTex("MOS 6526", "CIA1"), "cia"); }, 18.6, {});
+    def("cia2", "MOS 6526 CIA2", "IEC + USER PORT · U16", [0.72, 0.92], 0, 0.16, function () { return dip(0.52, 0.16, 0.075, 40, chipTex("MOS 6526", "CIA2"), "cia"); }, 19.7, {});
 
-    def("romBasic", "23128 ROM", "BASIC 8K · $A000", [1.52, -0.62], 0, 0.15, function () { return dip(0.34, 0.17, 0.07, 24, chipTex("BASIC 8K", "23128"), "romB"); }, 23.3, { dur: 1.0 });
-    def("romKernal", "23128 ROM", "KERNAL 8K · $E000", [1.52, -0.08], 0, 0.15, function () { return dip(0.34, 0.17, 0.07, 24, chipTex("KERNAL 8K", "23128"), "romK"); }, 24.2, { dur: 1.0 });
-    def("romChar", "2332 ROM", "CHAR 4K · $D000", [1.52, 0.42], 0, 0.15, function () { return dip(0.34, 0.17, 0.07, 24, chipTex("CHAR 4K", "2332"), "romC"); }, 25.1, { dur: 1.0 });
+    def("romBasic", "2364 ROM", "BASIC 8K · $A000 · U3", [1.52, -0.62], 0, 0.15, function () { return dip(0.38, 0.17, 0.07, 28, chipTex("BASIC 8K", "2364"), "romB"); }, 23.3, { dur: 1.0 });
+    def("romKernal", "2364 ROM", "KERNAL 8K · $E000 · U4", [1.52, -0.08], 0, 0.15, function () { return dip(0.38, 0.17, 0.07, 28, chipTex("KERNAL 8K", "2364"), "romK"); }, 24.2, { dur: 1.0 });
+    def("romChar", "2332 ROM", "CHAR 4K · $D000 · U5", [1.52, 0.42], 0, 0.15, function () { return dip(0.34, 0.17, 0.07, 24, chipTex("CHAR 4K", "2332"), "romC"); }, 25.1, { dur: 1.0 });
 
-    def("joy1", "JOYSTICK PORT 1", "DB9 · DIGITAL", [0.2, 1.35], 0, 0.15, buildDb9, 28.3, { dur: 1.0 });
-    def("joy2", "JOYSTICK PORT 2", "DB9", [0.85, 1.35], 0, 0.15, buildDb9, 28.8, { dur: 1.0 });
-    def("iec", "IEC SERIAL BUS", "DIN · DISK & PRINTER", [1.45, 1.35], 0, 0.14, function () { return buildDin(0.06); }, 29.3, { dur: 1.0 });
-    def("powerDin", "POWER IN", "2-PIN DIN · 5V DC", [-1.95, 1.12], 0, 0.13, function () { return buildDin(0.055); }, 29.8, { dur: 1.0 });
+    def("joy1", "JOYSTICK PORT 1", "DB9 · CIA1", [0.2, 1.35], 0, 0.15, buildDb9, 28.3, { dur: 1.0 });
+    def("joy2", "JOYSTICK PORT 2", "DB9 · CIA1", [0.85, 1.35], 0, 0.15, buildDb9, 28.8, { dur: 1.0 });
+    def("iec", "IEC SERIAL BUS", "DIN · CIA2 · DISK & PRINTER", [1.45, 1.35], 0, 0.14, function () { return buildDin(0.06); }, 29.3, { dur: 1.0 });
+    def("powerDin", "POWER IN", "7-PIN DIN · 9V AC + 5V DC", [-1.95, 1.12], 0, 0.13, function () { return buildDin(0.055); }, 29.8, { dur: 1.0 });
     def("cassette", "CASSETTE PORT", "EDGE · DATA TAPE", [-1.05, 1.46], 0, 0.1, function () { return buildEdge(0.44, 0.13); }, 30.3, { dur: 1.0 });
-    def("userPort", "USER PORT", "EDGE · 8-BIT GPIO", [-0.35, 1.46], 0, 0.1, function () { return buildEdge(0.5, 0.13); }, 30.8, { dur: 1.0 });
+    def("kbd", "KEYBOARD CONNECTOR", "20-PIN EDGE · KEYMATRIX", [-1.7, 1.46], 0, 0.1, function () { return buildEdge(0.6, 0.13); }, 30.55, { dur: 1.0 });
+    def("userPort", "USER PORT", "EDGE · 8-BIT GPIO · CIA2", [-0.35, 1.46], 0, 0.1, function () { return buildEdge(0.5, 0.13); }, 30.8, { dur: 1.0 });
     def("expansion", "EXPANSION PORT", "44-PIN EDGE · CARTRIDGES", [2.2, -0.1], 0, 0.13, function () { return buildEdge(0.14, 1.2); }, 31.3, { dur: 1.0 });
-    def("rf", "RF MODULATOR", "CH 3-4 · METAL BOX", [1.85, -1.02], 0, 0.2, buildRf, 31.8, { dur: 1.0 });
+    def("rf", "RF MODULATOR", "UHF 36 · METAL BOX", [1.85, -1.02], 0, 0.2, buildRf, 31.8, { dur: 1.0 });
     def("crt", "CRT TELEVISION", "VIDEO IN · 1702 STYLE", [-0.5, -2.42], 0.12, 0.62, buildCrt, 32.3, { dur: 1.3, y: MAT_TOP });
 
     def("cord", "POWER CORD", "DIN PLUG → PSU", [-1.95, 1.12], -0.64, 0.14, buildCord, 34.4, { dur: 1.2 });

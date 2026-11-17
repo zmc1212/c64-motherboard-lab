@@ -45,7 +45,7 @@
       '<div class="cia-row"><span class="k">CIA1·B</span><span class="bar"><i id="cia-tb"></i></span><span class="val" id="cia-tbv">$FFFF</span></div>' +
       '<div class="cia-foot"><span class="chip" id="cia-chip">TOD 50 HZ</span><span id="cia-note">IDLE</span></div></div></section>' +
 
-      '<section class="panel" style="flex:0.95"><header><i class="dot orange"></i><b>CPU 6510</b><span class="meta">1.023 MHZ</span></header>' +
+      '<section class="panel" style="flex:0.95"><header><i class="dot orange"></i><b>CPU 6510</b><span class="meta">0.985 MHZ · ÷18 (8701)</span></header>' +
       '<div class="body"><div class="cpu-pc" id="cpu-pc">$FCE2</div>' +
       '<div class="cpu-row"><span>PC · PROGRAM COUNTER</span><b>RESET $FCE2</b></div>' +
       '<div class="cpu-row"><span>IRQ</span><b id="cpu-irq">0 /S</b></div>' +
