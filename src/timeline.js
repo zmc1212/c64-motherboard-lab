@@ -1,21 +1,21 @@
 /* 时间线:裸板 → DRAM → 自定义芯片 → CPU → ROM → 连接器 → 上电开机 → SID JAM(46s 循环) */
 (function (C64B) {
   var phases = [
-    { id: "pcb", name: "PCB · ASSY 250425", dur: 4, dot: "blue",
+    { id: "pcb", name: "主板裸板 · ASSY 250425", dur: 4, dot: "blue",
       cam: { theta: -0.55, phi: 0.92, r: 9.2, target: [0, 0.1, 0] }, drift: 0.05 },
-    { id: "dram", name: "DRAM · 8× 4164", dur: 6, dot: "blue",
+    { id: "dram", name: "内存装填 · 8× 4164", dur: 6, dot: "blue",
       cam: { theta: -0.95, phi: 0.62, r: 4.6, target: [-1.75, 0.1, -0.2] }, drift: 0.028 },
-    { id: "custom", name: "CUSTOM · VIC-II / SID / PLA", dur: 7, dot: "yellow",
+    { id: "custom", name: "自研芯片 · VIC-II / SID / PLA", dur: 7, dot: "yellow",
       cam: { theta: -1.15, phi: 0.9, r: 4.4, target: [-0.25, 0.12, 0.1] }, drift: 0.02 },
-    { id: "cpu", name: "CPU · 6510 + 2× CIA", dur: 6, dot: "teal",
+    { id: "cpu", name: "核心芯片 · 6510 + 2× CIA", dur: 6, dot: "teal",
       cam: { theta: -0.65, phi: 0.88, r: 3.9, target: [0.35, 0.1, 0.3] }, drift: 0.016 },
-    { id: "rom", name: "ROM · BASIC / KERNAL / CHAR", dur: 5, dot: "orange",
+    { id: "rom", name: "固件 ROM · BASIC / KERNAL / CHAR", dur: 5, dot: "orange",
       cam: { theta: -1.7, phi: 0.9, r: 3.8, target: [1.45, 0.1, -0.1] }, drift: 0.016 },
-    { id: "conn", name: "CONN · PORTS + CRT", dur: 6, dot: "green",
+    { id: "conn", name: "外设接入 · 端口 + CRT", dur: 6, dot: "green",
       cam: { theta: -2.3, phi: 0.92, r: 5.6, target: [1.1, 0.1, 0.4] }, drift: 0.02 },
-    { id: "boot", name: "BOOT · BASIC V2 READY", dur: 6, dot: "green",
+    { id: "boot", name: "开机 · BASIC V2 READY", dur: 6, dot: "green",
       cam: { theta: -0.72, phi: 0.98, r: 7.2, target: [-0.2, 0.4, -1.0] }, drift: 0.014 },
-    { id: "sid", name: "SID · 3-VOICE JAM", dur: 6, dot: "pink",
+    { id: "sid", name: "SID 弹奏 · 3-VOICE JAM", dur: 6, dot: "pink",
       cam: { theta: -1.0, phi: 1.02, r: 5.8, target: [-0.35, 0.45, -1.9] }, drift: 0.012 }
   ];
 
@@ -26,32 +26,32 @@
     return out;
   })();
 
-  var MODES = { pcb: "BARE PCB", dram: "RAM FILL", custom: "CUSTOM", cpu: "CPU IN", rom: "ROM IN", conn: "I/O + CRT", boot: "BOOT", sid: "SID JAM" };
+  var MODES = { pcb: "裸板 PCB", dram: "装填 DRAM", custom: "自研芯片", cpu: "CPU 就位", rom: "ROM 就位", conn: "外设 I/O", boot: "开机 BOOT", sid: "SID 弹奏" };
 
   var PINNED = {
     pcb: function () {
-      return [{ id: "pin-board", obj: C64B.Parts.group("pcb"), text: "COMMODORE 64 · ASSY 250425", sub: "9V AC + 5V DC IN" }];
+      return [{ id: "pin-board", obj: C64B.Parts.group("pcb"), text: "C64 主板 · ASSY 250425", sub: "COMMODORE 64 · 9V AC + 5V DC IN" }];
     },
     dram: function () {
-      return [{ id: "pin-dram", obj: C64B.Parts.group("dram0"), text: "4164 ×8 · TWO RANKS", sub: "64K×1 · U9-U12 + U21-U24", tone: "white" }];
+      return [{ id: "pin-dram", obj: C64B.Parts.group("dram0"), text: "内存排 · 4164 ×8", sub: "TWO RANKS · 64K×1 · U9-U12 + U21-U24", tone: "white" }];
     },
     custom: function () {
-      return [{ id: "pin-sid", obj: C64B.Parts.group("sid"), text: "MOS 6581 SID", sub: "the sound chip" }];
+      return [{ id: "pin-sid", obj: C64B.Parts.group("sid"), text: "SID 声音芯片", sub: "MOS 6581 · THE SOUND CHIP" }];
     },
     cpu: function () {
-      return [{ id: "pin-cpu", obj: C64B.Parts.group("cpu"), text: "MOS 6510", sub: "0.985 MHZ · ÷18 VIA 8701", tone: "white" }];
+      return [{ id: "pin-cpu", obj: C64B.Parts.group("cpu"), text: "6510 处理器", sub: "MOS 6510 · 0.985 MHZ · ÷18 VIA 8701", tone: "white" }];
     },
     rom: function () {
-      return [{ id: "pin-rom", obj: C64B.Parts.group("romBasic"), text: "BASIC 8K · $A000", sub: "KERNAL $E000 · CHAR $D000", tone: "white" }];
+      return [{ id: "pin-rom", obj: C64B.Parts.group("romBasic"), text: "BASIC 固件 ROM · 8K", sub: "$A000 · KERNAL $E000 · CHAR $D000", tone: "white" }];
     },
     conn: function () {
-      return [{ id: "pin-crt", obj: C64B.Parts.group("crt"), text: "CRT TELEVISION", sub: "VIC-II → VIDEO IN" }];
+      return [{ id: "pin-crt", obj: C64B.Parts.group("crt"), text: "CRT 电视机", sub: "VIC-II → VIDEO IN" }];
     },
     boot: function () {
-      return [{ id: "pin-crt2", obj: C64B.Parts.group("crt"), text: "38911 BASIC BYTES FREE", sub: "BASIC V2 · READY." }];
+      return [{ id: "pin-crt2", obj: C64B.Parts.group("crt"), text: "开机就绪 · 38911 BASIC BYTES FREE", sub: "BASIC V2 · READY." }];
     },
     sid: function () {
-      return [{ id: "pin-crt3", obj: C64B.Parts.group("crt"), text: "SID JAM · A S D F G H J K", sub: "keys play the notes" }];
+      return [{ id: "pin-crt3", obj: C64B.Parts.group("crt"), text: "SID 弹奏 · A S D F G H J K", sub: "KEYS PLAY THE NOTES" }];
     }
   };
 
@@ -74,7 +74,7 @@
       time: 0, power: false, powerT: 0, bootT: 0,
       typed: 0, cursor: false, crtMode: "off",
       pc: "$FCE2", pcNum: 0xfce2, irq: 0, ta: 1, tb: 1, bus: 0,
-      vicBorder: "#3c414c", vicBg: "#23272e", vicSig: "NO SIGNAL",
+      vicBorder: "#3c414c", vicBg: "#23272e", vicSig: "无信号",
       freeB: 0, dramSeated: 0, parts: 0,
       voices: [
         { f: 0, env: 0, wave: "PULSE" },
@@ -188,12 +188,12 @@
 
     /* ---- VIC 读数 ---- */
     if (!state.power) {
-      state.vicBorder = "#3c414c"; state.vicBg = "#23272e"; state.vicSig = "NO SIGNAL";
+      state.vicBorder = "#3c414c"; state.vicBg = "#23272e"; state.vicSig = "无信号";
     } else if (ph.id === "boot") {
       state.vicBorder = "#3a3f9e"; state.vicBg = "#4044c8"; state.vicSig = "BASIC V2";
     } else {
       state.vicBorder = SIDPAL[Math.floor(state.time / 0.5) % 4];
-      state.vicBg = "#0f0f14"; state.vicSig = "SID JAM";
+      state.vicBg = "#0f0f14"; state.vicSig = "SID 弹奏";
     }
 
     /* ---- PC 寄存器 ---- */
@@ -206,7 +206,7 @@
     dom.mode.textContent = MODES[ph.id] || "—";
     dom.mode.className = "mode" + (ph.id === "sid" ? " hot" : "");
     var ramTxt = "—";
-    if (state.freeB) ramTxt = "38911 B FREE";
+    if (state.freeB) ramTxt = "38911 B 空闲";
     else if (state.power) ramTxt = "64K RAM";
     else if (state.dramSeated > 0) ramTxt = "4164 ×" + state.dramSeated;
     dom.ram.textContent = ramTxt;

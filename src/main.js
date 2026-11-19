@@ -80,6 +80,8 @@
         if (e.repeat) return;
         C64B.Timeline.restart();
         document.getElementById("phase-text").style.opacity = "1";
+      } else if (e.code === "KeyD") {
+        document.body.classList.toggle("no-dash");
       } else if (/^Digit[1-8]$/.test(e.code)) {
         if (e.repeat) return;
         C64B.Timeline.seek(PHASE_IDS[Number(e.code.slice(5)) - 1]);

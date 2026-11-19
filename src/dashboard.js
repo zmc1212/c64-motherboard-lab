@@ -26,31 +26,31 @@
   function buildDOM() {
     var dash = document.getElementById("dash");
     dash.innerHTML =
-      '<section class="panel" style="flex:1.15"><header><i class="dot blue"></i><b>MEMORY MAP</b><span class="meta">$0000 – $FFFF · 64K</span></header>' +
+      '<section class="panel" style="flex:1.15"><header><i class="dot blue"></i><b>内存地图</b><span class="meta">MEMORY MAP · $0000 – $FFFF · 64K</span></header>' +
       '<div class="body"><canvas id="c-mem"></canvas>' +
-      '<div class="mem-foot"><span>BASIC FREE <b id="mem-free">—</b></span><span id="mem-dram">DRAM 0/8</span></div></div></section>' +
+      '<div class="mem-foot"><span>BASIC 可用 <b id="mem-free">—</b></span><span id="mem-dram">DRAM 0/8</span></div></div></section>' +
 
-      '<section class="panel" style="flex:1.3"><header><i class="dot pink"></i><b>SID 6581</b><span class="meta">KEYS A S D F G H J K</span></header>' +
+      '<section class="panel" style="flex:1.3"><header><i class="dot pink"></i><b>SID 三声道</b><span class="meta">MOS 6581 · 弹奏键 A S D F G H J K</span></header>' +
       '<div class="body"><div class="vrows">' + voiceRow(0) + voiceRow(1) + voiceRow(2) + '</div>' +
       '<canvas id="c-sid"></canvas></div></section>' +
 
-      '<section class="panel" style="flex:0.92"><header><i class="dot teal"></i><b>VIC-II 6569</b><span class="meta">PAL · 320×200</span></header>' +
+      '<section class="panel" style="flex:0.92"><header><i class="dot teal"></i><b>VIC-II 视频</b><span class="meta">MOS 6569 · PAL · 320×200</span></header>' +
       '<div class="body"><div class="vic-big">320<span class="x">×</span>200</div>' +
-      '<div class="vic-row"><span class="k">BORDER</span><i class="sw" id="vic-b"></i><b id="vic-bh">#3C414C</b></div>' +
-      '<div class="vic-row"><span class="k">BG</span><i class="sw" id="vic-g"></i><b id="vic-gh">#23272E</b></div>' +
-      '<div class="vic-row"><span class="k">SIGNAL</span><b id="vic-sig">NO SIGNAL</b></div></div></section>' +
+      '<div class="vic-row"><span class="k">边框 BORDER</span><i class="sw" id="vic-b"></i><b id="vic-bh">#3C414C</b></div>' +
+      '<div class="vic-row"><span class="k">背景 BG</span><i class="sw" id="vic-g"></i><b id="vic-gh">#23272E</b></div>' +
+      '<div class="vic-row"><span class="k">信号 SIGNAL</span><b id="vic-sig">无信号</b></div></div></section>' +
 
-      '<section class="panel" style="flex:1"><header><i class="dot green"></i><b>CIA 6526</b><span class="meta">TIMERS A / B</span></header>' +
+      '<section class="panel" style="flex:1"><header><i class="dot green"></i><b>CIA 定时器</b><span class="meta">MOS 6526 · TIMERS A / B</span></header>' +
       '<div class="body"><div class="cia-row"><span class="k">CIA1·A</span><span class="bar"><i id="cia-ta"></i></span><span class="val" id="cia-tav">$FFFF</span></div>' +
       '<div class="cia-row"><span class="k">CIA1·B</span><span class="bar"><i id="cia-tb"></i></span><span class="val" id="cia-tbv">$FFFF</span></div>' +
-      '<div class="cia-foot"><span class="chip" id="cia-chip">TOD 50 HZ</span><span id="cia-note">IDLE</span></div></div></section>' +
+      '<div class="cia-foot"><span class="chip" id="cia-chip">TOD 50 HZ</span><span id="cia-note">空闲</span></div></div></section>' +
 
-      '<section class="panel" style="flex:0.95"><header><i class="dot orange"></i><b>CPU 6510</b><span class="meta">0.985 MHZ · ÷18 (8701)</span></header>' +
+      '<section class="panel" style="flex:0.95"><header><i class="dot orange"></i><b>CPU 读数</b><span class="meta">6510 · 0.985 MHZ · ÷18 (8701)</span></header>' +
       '<div class="body"><div class="cpu-pc" id="cpu-pc">$FCE2</div>' +
-      '<div class="cpu-row"><span>PC · PROGRAM COUNTER</span><b>RESET $FCE2</b></div>' +
-      '<div class="cpu-row"><span>IRQ</span><b id="cpu-irq">0 /S</b></div>' +
-      '<div class="cpu-bus"><span class="k">BUS</span><span class="bar"><i id="cpu-bus"></i></span></div>' +
-      '<div class="cpu-foot" id="cpu-note">RESET VECTOR $FCE2</div></div></section>';
+      '<div class="cpu-row"><span>程序计数器 PC</span><b>复位 $FCE2</b></div>' +
+      '<div class="cpu-row"><span>IRQ 中断</span><b id="cpu-irq">0 /S</b></div>' +
+      '<div class="cpu-bus"><span class="k">总线 BUS</span><span class="bar"><i id="cpu-bus"></i></span></div>' +
+      '<div class="cpu-foot" id="cpu-note">复位向量 $FCE2</div></div></section>';
 
     var mem = mkCanvas("c-mem", 64);
     memCtx = mem.ctx; memW = mem.w; memH = mem.h;
@@ -170,7 +170,7 @@
     document.getElementById("cia-tb").style.width = Math.round(st.tb * 100) + "%";
     document.getElementById("cia-tav").textContent = "$" + hex4(Math.floor(0xffff * st.ta));
     document.getElementById("cia-tbv").textContent = "$" + hex4(Math.floor(0xffff * st.tb));
-    document.getElementById("cia-note").textContent = st.power ? "COUNTING" : "IDLE";
+    document.getElementById("cia-note").textContent = st.power ? "计数中" : "空闲";
     document.getElementById("cia-chip").className = "chip" + (st.power ? " on" : "");
 
     /* CPU */
@@ -178,8 +178,8 @@
     document.getElementById("cpu-irq").textContent = Math.floor(st.irq) + " /S";
     document.getElementById("cpu-bus").style.width = Math.round(st.bus * 100) + "%";
     document.getElementById("cpu-note").textContent = st.power
-      ? (st.freeB ? "BASIC READY · 38911 FREE" : "RAM TEST · ROM BANKED")
-      : "RESET VECTOR $FCE2";
+      ? (st.freeB ? "BASIC 就绪 · 38911 空闲" : "内存自检 · ROM 映射")
+      : "复位向量 $FCE2";
   }
 
   C64B.Dashboard = { build: buildDOM, update: update };
